@@ -30,8 +30,29 @@
   .drag-zone { min-height: 80px; padding-bottom: 10px; }
   .drag-zone.drag-over { background-color: #e8f4f8; border-radius: 6px; }
 
-  .item { padding: 15px; margin: 10px 0; background: #ffffff; border: 1px solid #ddd; border-left: 6px solid #3498db; border-radius: 6px; cursor: grab; }
-  .item.is-dragging { opacity: 0.4; cursor: grabbing; transform: scale(0.98); }
+  .item { 
+    padding: 15px; 
+    margin: 10px 0; 
+    background: #ffffff; 
+    border: 1px solid #ddd; 
+    border-left: 6px solid #3498db; 
+    border-radius: 6px; 
+    cursor: grab; 
+    touch-action: none;
+    user-select: none;
+  }
+  .item.is-dragging { 
+    opacity: 0.5; 
+    cursor: grabbing; 
+    transform: scale(0.98); 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    z-index: 1000;
+    position: relative;
+  }
+  .item.drag-placeholder {
+    opacity: 0.2;
+    background-color: #ecf0f1;
+  }
   .item-header { display: flex; justify-content: space-between; align-items: center; }
   .drag-icon { color: #ccc; font-size: 20px; }
   .field-name { font-weight: bold; font-size: 15px; color: #2c3e50; }
@@ -62,7 +83,7 @@
 
 <div class="container">
   <h2>通報介面模擬</h2>
-  <div class="instructions">可上下拖曳調整欄位。點擊輸入框可選擇或輸入該欄位的預設值。</div>
+  <div class="instructions">可上下拖曳調整欄位。支援滑鼠和觸控。點擊輸入框可選擇或輸入該欄位的預設值。</div>
   
   <datalist id="logic-yn"><option value="無"></option><option value="有"></option><option value="不知道"></option></datalist>
   <datalist id="logic-yn-only"><option value="無"></option><option value="有"></option></datalist>
@@ -72,42 +93,42 @@
   <datalist id="logic-aid-daily"><option value="預設勾選：無"></option><option value="連動：若選「有」，強制展開輔具種類清單"></option></datalist>
   <datalist id="logic-bed"><option value="不知道"></option><option value="不適用"></option></datalist>
   <datalist id="logic-con"><option value="清醒"></option><option value="嗜睡"></option><option value="意識混亂"></option><option value="昏迷"></option></datalist>
-  <datalist id="logic-reason-main"><option value="因病患健康狀況(生理因素)引起"></option><option value="因手術、藥物或麻醉引起"></option><option value="因環境因素引起"></option></datalist>
+  <datalist id="logic-reason-main"><option value="因病患健康狀況(生理因素)引起"></option><option value="因手術、藥物或麻醉引起"></option><option value="因環境因素引起"></option><option value="其他原因引起"></option></datalist>
   <datalist id="logic-dispute"><option value="可能性低"></option><option value="有可能"></option><option value="極可能"></option></datalist>
 
   <div class="section-box">
     <div class="section-title">跌倒事件</div>
     <div class="drag-zone" id="zone-1" data-zone-name="跌倒事件">
-      <div class="item" draggable="true" data-id="1"><div class="item-header"><span class="field-name">※請簡述整起事件經過及您認為發生本次事件的可能原因：(最多500字)</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-reason-main" placeholder="輸入或選擇事件原因"></div></div>
-      <div class="item" draggable="true" data-id="2"><div class="item-header"><span class="field-name">※最近一年跌倒次數：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="number" min="0" placeholder="輸入次數"></div></div>
-      <div class="item" draggable="true" data-id="3"><div class="item-header"><span class="field-name">※事件發生前是否為跌倒高危險群：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-risk" placeholder="輸入風險等級"></div></div>
-      <div class="item" draggable="true" data-id="4"><div class="item-header"><span class="field-name">※巴氏量表：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="number" min="0" max="100" placeholder="輸入分數(0-100)"></div></div>
-      <div class="item" draggable="true" data-id="5"><div class="item-header"><span class="field-name">※日常輔具的使用：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-aid-daily" placeholder="選擇輔具使用情況"></div></div>
-      <div class="item" draggable="true" data-id="6"><div class="item-header"><span class="field-name">跌倒時輔具的使用：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="輸入或選擇"></div></div>
-      <div class="item" draggable="true" data-id="7"><div class="item-header"><span class="field-name">事件發生前床欄使用情形：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="輸入或選擇"></div></div>
-      <div class="item" draggable="true" data-id="8"><div class="item-header"><span class="field-name">※跌倒事件發生地點：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="輸入地點"></div></div>
-      <div class="item" draggable="true" data-id="9"><div class="item-header"><span class="field-name">※事件發生於何項活動過程：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="輸入活動過程"></div></div>
-      <div class="item" draggable="true" data-id="10"><div class="item-header"><span class="field-name">事件發生當時病人的意識：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-con" placeholder="選擇意識狀態"></div></div>
-      <div class="item" draggable="true" data-id="11"><div class="item-header"><span class="field-name">醫院內部跌倒預防及處理規範：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="輸入規範相關內容"></div></div>
-      <div class="item" draggable="true" data-id="12"><div class="item-header"><span class="field-name">發現人員：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="輸入發現者身份"></div></div>
-      <div class="item" draggable="true" data-id="13"><div class="item-header"><span class="field-name">※跌倒發生時病人的受傷部位：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="輸入受傷部位"></div></div>
-      <div class="item" draggable="true" data-id="14"><div class="item-header"><span class="field-name">※病人跌倒前24小時內有無用藥：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="輸入或選擇"></div></div>
-      <div class="item" draggable="true" data-id="15"><div class="item-header"><span class="field-name">※跌倒當時點滴注射型態：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="輸入點滴狀況"></div></div>
-      <div class="item" draggable="true" data-id="16"><div class="item-header"><span class="field-name">※跌倒當時有無約束：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn-only" placeholder="輸入或選擇"></div></div>
-      <div class="item" draggable="true" data-id="17"><div class="item-header"><span class="field-name">※事件原因：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-reason-main" placeholder="選擇主要原因"></div></div>
-      <div class="item" draggable="true" data-id="18"><div class="item-header"><span class="field-name">※生命徵象：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="輸入生命徵象數值"></div></div>
+      <div class="item" data-id="1"><div class="item-header"><span class="field-name">※請簡述整起事件經過及您認為發生本次事件的可能原因：(最多500字)</span><span class="drag-icon">☰</span></div><div class="settings"><textarea style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; background-color: #fafbfc; font-family: inherit;" rows="3" placeholder="請輸入事件經過"></textarea></div></div>
+      <div class="item" data-id="2"><div class="item-header"><span class="field-name">※最近一年跌倒次數：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div></div>
+      <div class="item" data-id="3"><div class="item-header"><span class="field-name">※事件發生前是否為跌倒高危險群：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-risk" placeholder="是/否/未評估/不知道"></div></div>
+      <div class="item" data-id="4"><div class="item-header"><span class="field-name">※巴氏量表：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="number" placeholder="0-100"></div></div>
+      <div class="item" data-id="5"><div class="item-header"><span class="field-name">※日常輔具的使用：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn-only" placeholder="無/有"></div></div>
+      <div class="item" data-id="6"><div class="item-header"><span class="field-name">跌倒時輔具的使用：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div></div>
+      <div class="item" data-id="7"><div class="item-header"><span class="field-name">事件發生前床欄使用情形：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-bed" placeholder="不知道/不適用"></div></div>
+      <div class="item" data-id="8"><div class="item-header"><span class="field-name">※跌倒事件發生地點：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="床邊/廁所/走廊..."></div></div>
+      <div class="item" data-id="9"><div class="item-header"><span class="field-name">※事件發生於何項活動過程：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="上下床/如廁/沐浴..."></div></div>
+      <div class="item" data-id="10"><div class="item-header"><span class="field-name">事件發生當時病人的意識：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-con" placeholder="清醒/嗜睡/意識混亂/昏迷"></div></div>
+      <div class="item" data-id="11"><div class="item-header"><span class="field-name">醫院內部跌倒預防及處理規範：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yesno" placeholder="是/否"></div></div>
+      <div class="item" data-id="12"><div class="item-header"><span class="field-name">發現人員：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="護理師/病患自己/家屬..."></div></div>
+      <div class="item" data-id="13"><div class="item-header"><span class="field-name">※跌倒發生時病人的受傷部位：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="頭部/手臂/腿部..."></div></div>
+      <div class="item" data-id="14"><div class="item-header"><span class="field-name">※病人跌倒前24小時內有無用藥：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div></div>
+      <div class="item" data-id="15"><div class="item-header"><span class="field-name">※跌倒當時點滴注射型態：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div></div>
+      <div class="item" data-id="16"><div class="item-header"><span class="field-name">※跌倒當時有無約束：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn-only" placeholder="無/有"></div></div>
+      <div class="item" data-id="17"><div class="item-header"><span class="field-name">※事件原因：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-reason-main" placeholder="選擇原因"></div></div>
+      <div class="item" data-id="18"><div class="item-header"><span class="field-name">※生命徵象：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="血壓/心率/體溫..."></div></div>
     </div>
   </div>
 
   <div class="section-box">
     <div class="section-title">跌倒事件分析表</div>
     <div class="drag-zone" id="zone-2" data-zone-name="跌倒事件分析表">
-      <div class="item" draggable="true" data-id="19"><div class="item-header"><span class="field-name">病患跌倒前的危險性評估</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-risk" placeholder="輸入風險評估"></div></div>
-      <div class="item" draggable="true" data-id="20"><div class="item-header"><span class="field-name">※跌倒所造成的身體傷害-型態：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="輸入傷害型態"></div></div>
-      <div class="item" draggable="true" data-id="21"><div class="item-header"><span class="field-name">※主要原因分析：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-reason-main" placeholder="選擇分析原因"></div></div>
-      <div class="item" draggable="true" data-id="22"><div class="item-header"><span class="field-name">檢討及改進項目：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="輸入改進項目"></div></div>
-      <div class="item" draggable="true" data-id="23"><div class="item-header"><span class="field-name">※是否為此次住院第一次在院內跌倒：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yesno" placeholder="輸入或選擇"></div></div>
-      <div class="item" draggable="true" data-id="24"><div class="item-header"><span class="field-name">評估醫療糾紛之機會：(需要時主動呈報醫療糾紛小組)</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-dispute" placeholder="輸入或選擇"></div></div>
+      <div class="item" data-id="19"><div class="item-header"><span class="field-name">病患跌倒前的危險性評估</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-risk" placeholder="是/否/未評估/不知道"></div></div>
+      <div class="item" data-id="20"><div class="item-header"><span class="field-name">※跌倒所造成的身體傷害-型態：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="無傷害/輕傷/重傷..."></div></div>
+      <div class="item" data-id="21"><div class="item-header"><span class="field-name">※主要原因分析：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-dispute" placeholder="可能性低/有可能/極可能"></div></div>
+      <div class="item" data-id="22"><div class="item-header"><span class="field-name">檢討及改進項目：</span><span class="drag-icon">☰</span></div><div class="settings"><textarea style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; background-color: #fafbfc; font-family: inherit;" rows="2" placeholder="請輸入改進項目"></textarea></div></div>
+      <div class="item" data-id="23"><div class="item-header"><span class="field-name">※是否為此次住院第一次在院內跌倒：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yesno" placeholder="是/否"></div></div>
+      <div class="item" data-id="24"><div class="item-header"><span class="field-name">評估醫療糾紛之機會：(需要時主動呈報醫療糾紛小組)</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-dispute" placeholder="可能性低/有可能/極可能"></div></div>
     </div>
   </div>
 
@@ -138,6 +159,7 @@
 
 <script>
   let draggedItem = null;
+  let offsetY = 0;
   const saveStatus = document.getElementById('save-status');
 
   // 取得當前所有狀態資料
@@ -146,10 +168,11 @@
     document.querySelectorAll('.drag-zone').forEach(zone => {
       const zoneId = zone.id;
       zone.querySelectorAll('.item').forEach(item => {
+        const input = item.querySelector('input') || item.querySelector('textarea');
         data.push({
           id: item.getAttribute('data-id'),
           zone: zoneId,
-          note: item.querySelector('input').value
+          note: input ? input.value : ''
         });
       });
     });
@@ -162,7 +185,8 @@
       const el = document.querySelector(`.item[data-id="${itemInfo.id}"]`);
       const targetZone = document.getElementById(itemInfo.zone);
       if (el && targetZone) {
-        el.querySelector('input').value = itemInfo.note;
+        const input = el.querySelector('input') || el.querySelector('textarea');
+        if (input) input.value = itemInfo.note;
         targetZone.appendChild(el); 
       }
     });
@@ -217,44 +241,49 @@
     reader.readAsText(file);
   }
 
-  // 拖曳功能
-  document.addEventListener('dragstart', e => {
+  // ========== 觸控 + 滑鼠拖曳功能（使用 Pointer Events） ==========
+  document.addEventListener('pointerdown', e => {
     const item = e.target.closest('.item');
-    if (item) {
-        draggedItem = item;
-        setTimeout(() => item.classList.add('is-dragging'), 0);
+    if (item && e.target.closest('.drag-icon')) {
+      draggedItem = item;
+      offsetY = e.clientY - item.getBoundingClientRect().top;
+      item.classList.add('is-dragging');
+      item.setPointerCapture(e.pointerId);
     }
   });
 
-  document.addEventListener('dragend', () => {
-    if (draggedItem) {
-        draggedItem.classList.remove('is-dragging');
-        document.querySelectorAll('.drag-zone').forEach(z => z.classList.remove('drag-over'));
-        draggedItem = null;
-        saveToLocal();
-    }
-  });
+  document.addEventListener('pointermove', e => {
+    if (!draggedItem) return;
+    
+    const zones = document.querySelectorAll('.drag-zone');
+    let targetZone = null;
 
-  document.querySelectorAll('.drag-zone').forEach(zone => {
-    zone.addEventListener('dragover', e => {
-      e.preventDefault();
-      zone.classList.add('drag-over');
-      
-      const afterElement = getDragAfterElement(zone, e.clientY);
-      const currentItem = document.querySelector('.is-dragging');
-      
-      if (currentItem) {
-          if (afterElement == null) {
-            zone.appendChild(currentItem);
-          } else {
-            zone.insertBefore(currentItem, afterElement);
-          }
+    zones.forEach(zone => {
+      const rect = zone.getBoundingClientRect();
+      if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        targetZone = zone;
       }
     });
 
-    zone.addEventListener('dragleave', () => {
-      zone.classList.remove('drag-over');
-    });
+    if (targetZone) {
+      targetZone.classList.add('drag-over');
+      const afterElement = getDragAfterElement(targetZone, e.clientY);
+      
+      if (afterElement == null) {
+        targetZone.appendChild(draggedItem);
+      } else {
+        targetZone.insertBefore(draggedItem, afterElement);
+      }
+    }
+  });
+
+  document.addEventListener('pointerup', e => {
+    if (draggedItem) {
+      draggedItem.classList.remove('is-dragging');
+      document.querySelectorAll('.drag-zone').forEach(z => z.classList.remove('drag-over'));
+      draggedItem = null;
+      saveToLocal();
+    }
   });
 
   function getDragAfterElement(container, y) {
@@ -286,8 +315,9 @@
       } else {
         items.forEach((item, index) => {
           const name = item.querySelector('.field-name').innerText;
-          const note = item.querySelector('input').value || "無特別設定";
-          output += `  ${index + 1}. ${name}\n     ↳ 預設邏輯：${note}\n\n`;
+          const input = item.querySelector('input') || item.querySelector('textarea');
+          const note = input ? input.value : "無特別設定";
+          output += `  ${index + 1}. ${name}\n     ↳ 預設邏輯：${note || "無特別設定"}\n\n`;
         });
       }
     });
@@ -312,7 +342,7 @@
     window.URL.revokeObjectURL(url);
   }
 
-  document.querySelectorAll('input').forEach(input => {
+  document.querySelectorAll('input, textarea').forEach(input => {
     input.addEventListener('input', saveToLocal);
   });
 
