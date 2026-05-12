@@ -1,353 +1,663 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>跌倒事件通報</title>
-<style>
-  body { 
-    font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif; 
-    background-color: #f0f2f5; 
-    padding: 20px; 
-    color: #333;
-  }
-  .container { 
-    max-width: 800px; 
-    margin: 0 auto; 
-    background: white; 
-    padding: 25px; 
-    border-radius: 12px; 
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15); 
-  }
-  h2 { text-align: center; color: #1a3a5f; margin-bottom: 5px; }
-  .instructions {
-    text-align: center; color: #666; font-size: 14px;
-    margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;
-  }
-  
-  .section-box { margin-bottom: 25px; background: #f8f9fa; border: 2px dashed #bdc3c7; border-radius: 8px; padding: 15px; }
-  .section-title { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; border-left: 5px solid #e74c3c; padding-left: 10px; }
-  .drag-zone { min-height: 80px; padding-bottom: 10px; }
-  .drag-zone.drag-over { background-color: #e8f4f8; border-radius: 6px; }
 
-  .item { 
-    padding: 15px; 
-    margin: 10px 0; 
-    background: #ffffff; 
-    border: 1px solid #ddd; 
-    border-left: 6px solid #3498db; 
-    border-radius: 6px; 
-    cursor: grab; 
-    touch-action: none;
-    user-select: none;
-  }
-  .item.is-dragging { 
-    opacity: 0.5; 
-    cursor: grabbing; 
-    transform: scale(0.98); 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    z-index: 1000;
-    position: relative;
-  }
-  .item.drag-placeholder {
-    opacity: 0.2;
-    background-color: #ecf0f1;
-  }
-  .item-header { display: flex; justify-content: space-between; align-items: center; }
-  .drag-icon { color: #ccc; font-size: 20px; }
-  .field-name { font-weight: bold; font-size: 15px; color: #2c3e50; }
-  .settings { margin-top: 10px; }
-  .settings input { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; background-color: #fafbfc; }
-  .settings input:focus { outline: none; border-color: #3498db; background-color: #fff; }
-  
-  /* 按鈕群組排版 */
-  .control-panel { background: #ecf0f1; padding: 15px; border-radius: 8px; margin-top: 25px; }
-  .control-title { font-size: 14px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; }
-  .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-  
-  .btn { padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-  .btn-primary { background: #3498db; color: white; }
-  .btn-primary:hover { background: #2980b9; }
-  .btn-success { background: #27ae60; color: white; }
-  .btn-success:hover { background: #219150; }
-  .btn-warning { background: #f39c12; color: white; }
-  .btn-warning:hover { background: #e67e22; }
-  .btn-info { background: #8e44ad; color: white; }
-  .btn-info:hover { background: #732d91; }
-  
-  #result { margin-top: 20px; white-space: pre-wrap; background: #fdfdfe; border: 1px solid #e9ecef; padding: 15px; border-radius: 6px; display: none; line-height: 1.6; font-family: monospace; }
-  .status-tag { font-size: 13px; color: #27ae60; text-align: center; margin-top: 5px; display: none; font-weight: bold; }
-</style>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>跌倒事件通報</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+      background-color: #f0f2f5;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    h2 {
+      text-align: center;
+      color: #1a3a5f;
+      margin-bottom: 5px;
+    }
+
+    .instructions {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px dashed #ccc;
+    }
+
+    .section-box {
+      margin-bottom: 25px;
+      background: #f8f9fa;
+      border: 2px dashed #bdc3c7;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 10px;
+      border-left: 5px solid #e74c3c;
+      padding-left: 10px;
+    }
+
+    .drag-zone {
+      min-height: 80px;
+      padding-bottom: 10px;
+    }
+
+    .drag-zone.drag-over {
+      background-color: #e8f4f8;
+      border-radius: 6px;
+    }
+
+    .item {
+      padding: 15px;
+      margin: 10px 0;
+      background: #ffffff;
+      border: 1px solid #ddd;
+      border-left: 6px solid #3498db;
+      border-radius: 6px;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .item.is-dragging {
+      opacity: 0.5;
+      cursor: grabbing;
+      transform: scale(0.98);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      position: relative;
+    }
+
+    .item.drag-placeholder {
+      opacity: 0.2;
+      background-color: #ecf0f1;
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .drag-icon {
+      color: #ccc;
+      font-size: 20px;
+    }
+
+    .field-name {
+      font-weight: bold;
+      font-size: 15px;
+      color: #2c3e50;
+    }
+
+    .settings {
+      margin-top: 10px;
+    }
+
+    .settings input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: #fafbfc;
+    }
+
+    .settings input:focus {
+      outline: none;
+      border-color: #3498db;
+      background-color: #fff;
+    }
+
+    /* 按鈕群組排版 */
+    .control-panel {
+      background: #ecf0f1;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 25px;
+    }
+
+    .control-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #7f8c8d;
+      margin-bottom: 10px;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .btn {
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+
+    .btn-success {
+      background: #27ae60;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #219150;
+    }
+
+    .btn-warning {
+      background: #f39c12;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #e67e22;
+    }
+
+    .btn-info {
+      background: #8e44ad;
+      color: white;
+    }
+
+    .btn-info:hover {
+      background: #732d91;
+    }
+
+    #result {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background: #fdfdfe;
+      border: 1px solid #e9ecef;
+      padding: 15px;
+      border-radius: 6px;
+      display: none;
+      line-height: 1.6;
+      font-family: monospace;
+    }
+
+    .status-tag {
+      font-size: 13px;
+      color: #27ae60;
+      text-align: center;
+      margin-top: 5px;
+      display: none;
+      font-weight: bold;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="container">
-  <h2>通報介面模擬</h2>
-  <div class="instructions">可上下拖曳調整欄位。支援滑鼠和觸控。點擊輸入框可選擇或輸入該欄位的預設值。</div>
-  
-  <datalist id="logic-yn"><option value="無"></option><option value="有"></option><option value="不知道"></option></datalist>
-  <datalist id="logic-yn-only"><option value="無"></option><option value="有"></option></datalist>
-  <datalist id="logic-yesno"><option value="是"></option><option value="否"></option></datalist>
-  <datalist id="logic-risk"><option value="是"></option><option value="否"></option><option value="未評估"></option><option value="不知道"></option></datalist>
-  <datalist id="logic-score"><option value="自動帶入最近一筆護理紀錄分數"></option><option value="預設為空白"></option><option value="防呆：數值不可小於0或大於100"></option></datalist>
-  <datalist id="logic-aid-daily"><option value="預設勾選：無"></option><option value="連動：若選「有」，強制展開輔具種類清單"></option></datalist>
-  <datalist id="logic-bed"><option value="不知道"></option><option value="不適用"></option></datalist>
-  <datalist id="logic-con"><option value="清醒"></option><option value="嗜睡"></option><option value="意識混亂"></option><option value="昏迷"></option></datalist>
-  <datalist id="logic-reason-main"><option value="因病患健康狀況(生理因素)引起"></option><option value="因手術、藥物或麻醉引起"></option><option value="因環境因素引起"></option><option value="其他原因引起"></option></datalist>
-  <datalist id="logic-dispute"><option value="可能性低"></option><option value="有可能"></option><option value="極可能"></option></datalist>
+  <div class="container">
+    <h2>通報介面模擬</h2>
+    <div class="instructions">可上下拖曳調整欄位。支援滑鼠和觸控。點擊輸入框可選擇或輸入該欄位的預設值。</div>
 
-  <div class="section-box">
-    <div class="section-title">跌倒事件</div>
-    <div class="drag-zone" id="zone-1" data-zone-name="跌倒事件">
-      <div class="item" data-id="1"><div class="item-header"><span class="field-name">※請簡述整起事件經過及您認為發生本次事件的可能原因：(最多500字)</span><span class="drag-icon">☰</span></div><div class="settings"><textarea style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; background-color: #fafbfc; font-family: inherit;" rows="3" placeholder="請輸入事件經過"></textarea></div></div>
-      <div class="item" data-id="2"><div class="item-header"><span class="field-name">※最近一年跌倒次數：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div></div>
-      <div class="item" data-id="3"><div class="item-header"><span class="field-name">※事件發生前是否為跌倒高危險群：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-risk" placeholder="是/否/未評估/不知道"></div></div>
-      <div class="item" data-id="4"><div class="item-header"><span class="field-name">※巴氏量表：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="number" placeholder="0-100"></div></div>
-      <div class="item" data-id="5"><div class="item-header"><span class="field-name">※日常輔具的使用：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn-only" placeholder="無/有"></div></div>
-      <div class="item" data-id="6"><div class="item-header"><span class="field-name">跌倒時輔具的使用：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div></div>
-      <div class="item" data-id="7"><div class="item-header"><span class="field-name">事件發生前床欄使用情形：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-bed" placeholder="不知道/不適用"></div></div>
-      <div class="item" data-id="8"><div class="item-header"><span class="field-name">※跌倒事件發生地點：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="床邊/廁所/走廊..."></div></div>
-      <div class="item" data-id="9"><div class="item-header"><span class="field-name">※事件發生於何項活動過程：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="上下床/如廁/沐浴..."></div></div>
-      <div class="item" data-id="10"><div class="item-header"><span class="field-name">事件發生當時病人的意識：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-con" placeholder="清醒/嗜睡/意識混亂/昏迷"></div></div>
-      <div class="item" data-id="11"><div class="item-header"><span class="field-name">醫院內部跌倒預防及處理規範：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yesno" placeholder="是/否"></div></div>
-      <div class="item" data-id="12"><div class="item-header"><span class="field-name">發現人員：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="護理師/病患自己/家屬..."></div></div>
-      <div class="item" data-id="13"><div class="item-header"><span class="field-name">※跌倒發生時病人的受傷部位：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="頭部/手臂/腿部..."></div></div>
-      <div class="item" data-id="14"><div class="item-header"><span class="field-name">※病人跌倒前24小時內有無用藥：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div></div>
-      <div class="item" data-id="15"><div class="item-header"><span class="field-name">※跌倒當時點滴注射型態：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div></div>
-      <div class="item" data-id="16"><div class="item-header"><span class="field-name">※跌倒當時有無約束：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yn-only" placeholder="無/有"></div></div>
-      <div class="item" data-id="17"><div class="item-header"><span class="field-name">※事件原因：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-reason-main" placeholder="選擇原因"></div></div>
-      <div class="item" data-id="18"><div class="item-header"><span class="field-name">※生命徵象：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="血壓/心率/體溫..."></div></div>
+    <datalist id="logic-yn">
+      <option value="無"></option>
+      <option value="有"></option>
+      <option value="不知道"></option>
+    </datalist>
+    <datalist id="logic-yn-only">
+      <option value="無"></option>
+      <option value="有"></option>
+    </datalist>
+    <datalist id="logic-yesno">
+      <option value="是"></option>
+      <option value="否"></option>
+    </datalist>
+    <datalist id="logic-risk">
+      <option value="是"></option>
+      <option value="否"></option>
+      <option value="未評估"></option>
+      <option value="不知道"></option>
+    </datalist>
+    <datalist id="logic-score">
+      <option value="自動帶入最近一筆護理紀錄分數"></option>
+      <option value="預設為空白"></option>
+      <option value="防呆：數值不可小於0或大於100"></option>
+    </datalist>
+    <datalist id="logic-aid-daily">
+      <option value="預設勾選：無"></option>
+      <option value="連動：若選「有」，強制展開輔具種類清單"></option>
+    </datalist>
+    <datalist id="logic-bed">
+      <option value="不知道"></option>
+      <option value="不適用"></option>
+    </datalist>
+    <datalist id="logic-con">
+      <option value="清醒"></option>
+      <option value="嗜睡"></option>
+      <option value="意識混亂"></option>
+      <option value="昏迷"></option>
+    </datalist>
+    <datalist id="logic-reason-main">
+      <option value="因病患健康狀況(生理因素)引起"></option>
+      <option value="因手術、藥物或麻醉引起"></option>
+      <option value="因環境因素引起"></option>
+      <option value="其他原因引起"></option>
+    </datalist>
+    <datalist id="logic-dispute">
+      <option value="可能性低"></option>
+      <option value="有可能"></option>
+      <option value="極可能"></option>
+    </datalist>
+
+    <div class="section-box">
+      <div class="section-title">跌倒事件</div>
+      <div class="drag-zone" id="zone-1" data-zone-name="跌倒事件">
+        <div class="item" data-id="1">
+          <div class="item-header"><span class="field-name">※請簡述整起事件經過及您認為發生本次事件的可能原因：(最多500字)</span><span
+              class="drag-icon">☰</span></div>
+          <div class="settings"><textarea
+              style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; background-color: #fafbfc; font-family: inherit;"
+              rows="3" placeholder="請輸入事件經過"></textarea></div>
+        </div>
+        <div class="item" data-id="2">
+          <div class="item-header"><span class="field-name">※最近一年跌倒次數：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div>
+        </div>
+        <div class="item" data-id="3">
+          <div class="item-header"><span class="field-name">※事件發生前是否為跌倒高危險群：</span><span class="drag-icon">☰</span>
+          </div>
+          <div class="settings"><input type="text" list="logic-risk" placeholder="是/否/未評估/不知道"></div>
+        </div>
+        <div class="item" data-id="4">
+          <div class="item-header"><span class="field-name">※巴氏量表：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="number" placeholder="0-100"></div>
+        </div>
+        <div class="item" data-id="5">
+          <div class="item-header"><span class="field-name">※日常輔具的使用：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-yn-only" placeholder="無/有"></div>
+        </div>
+        <div class="item" data-id="6">
+          <div class="item-header"><span class="field-name">跌倒時輔具的使用：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div>
+        </div>
+        <div class="item" data-id="7">
+          <div class="item-header"><span class="field-name">事件發生前床欄使用情形：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-bed" placeholder="不知道/不適用"></div>
+        </div>
+        <div class="item" data-id="8">
+          <div class="item-header"><span class="field-name">※跌倒事件發生地點：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" placeholder="床邊/廁所/走廊..."></div>
+        </div>
+        <div class="item" data-id="9">
+          <div class="item-header"><span class="field-name">※事件發生於何項活動過程：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" placeholder="上下床/如廁/沐浴..."></div>
+        </div>
+        <div class="item" data-id="10">
+          <div class="item-header"><span class="field-name">事件發生當時病人的意識：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-con" placeholder="清醒/嗜睡/意識混亂/昏迷"></div>
+        </div>
+        <div class="item" data-id="11">
+          <div class="item-header"><span class="field-name">醫院內部跌倒預防及處理規範：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-yesno" placeholder="是/否"></div>
+        </div>
+        <div class="item" data-id="12">
+          <div class="item-header"><span class="field-name">發現人員：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" placeholder="護理師/病患自己/家屬..."></div>
+        </div>
+        <div class="item" data-id="13">
+          <div class="item-header"><span class="field-name">※跌倒發生時病人的受傷部位：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" placeholder="頭部/手臂/腿部..."></div>
+        </div>
+        <div class="item" data-id="14">
+          <div class="item-header"><span class="field-name">※病人跌倒前24小時內有無用藥：</span><span class="drag-icon">☰</span>
+          </div>
+          <div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div>
+        </div>
+        <div class="item" data-id="15">
+          <div class="item-header"><span class="field-name">※跌倒當時點滴注射型態：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-yn" placeholder="無/有/不知道"></div>
+        </div>
+        <div class="item" data-id="16">
+          <div class="item-header"><span class="field-name">※跌倒當時有無約束：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-yn-only" placeholder="無/有"></div>
+        </div>
+        <div class="item" data-id="17">
+          <div class="item-header"><span class="field-name">※事件原因：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-reason-main" placeholder="選擇原因"></div>
+        </div>
+        <div class="item" data-id="18">
+          <div class="item-header"><span class="field-name">※生命徵象：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" placeholder="血壓/心率/體溫..."></div>
+        </div>
+      </div>
     </div>
+
+    <div class="section-box">
+      <div class="section-title">跌倒事件分析表</div>
+      <div class="drag-zone" id="zone-2" data-zone-name="跌倒事件分析表">
+        <div class="item" data-id="19">
+          <div class="item-header"><span class="field-name">病患跌倒前的危險性評估</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-risk" placeholder="是/否/未評估/不知道"></div>
+        </div>
+        <div class="item" data-id="20">
+          <div class="item-header"><span class="field-name">※跌倒所造成的身體傷害-型態：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" placeholder="無傷害/輕傷/重傷..."></div>
+        </div>
+        <div class="item" data-id="21">
+          <div class="item-header"><span class="field-name">※主要原因分析：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-dispute" placeholder="可能性低/有可能/極可能"></div>
+        </div>
+        <div class="item" data-id="22">
+          <div class="item-header"><span class="field-name">檢討及改進項目：</span><span class="drag-icon">☰</span></div>
+          <div class="settings"><textarea
+              style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; background-color: #fafbfc; font-family: inherit;"
+              rows="2" placeholder="請輸入改進項目"></textarea></div>
+        </div>
+        <div class="item" data-id="23">
+          <div class="item-header"><span class="field-name">※是否為此次住院第一次在院內跌倒：</span><span class="drag-icon">☰</span>
+          </div>
+          <div class="settings"><input type="text" list="logic-yesno" placeholder="是/否"></div>
+        </div>
+        <div class="item" data-id="24">
+          <div class="item-header"><span class="field-name">評估醫療糾紛之機會：(需要時主動呈報醫療糾紛小組)</span><span
+              class="drag-icon">☰</span></div>
+          <div class="settings"><input type="text" list="logic-dispute" placeholder="可能性低/有可能/極可能"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">非病患無須輸入，自動帶入預設值</div>
+      <div class="drag-zone" id="zone-3" data-zone-name="非病患無須輸入的預設值區"></div>
+    </div>
+
+    <div id="save-status" class="status-tag">✓ 進度已自動儲存於本機</div>
+
+    <div class="control-panel">
+      <div class="control-title">📂 分享</div>
+      <div class="btn-group">
+        <button class="btn btn-warning" onclick="exportJSON()">匯出修改檔 (.json)</button>
+        <button class="btn btn-info" onclick="document.getElementById('import-file').click()">匯入修改檔 (.json)</button>
+        <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importJSON(event)">
+      </div>
+
+      <div class="control-title">📄 匯出文字結果</div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="showResult()">顯示文字結果</button>
+        <button class="btn btn-success" onclick="downloadTxt()">下載 .txt 檔</button>
+      </div>
+      <!-- 在 control-panel 內新增一個分組 -->
+      <div class="control-title">☁️ 上傳到 Google Sheets</div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="submitToGoogle()">上傳結果</button>
+        <button class="btn btn-success" onclick="testConnection()">測試連線</button>
+      </div>
+    </div>
+
+    <div id="result"></div>
   </div>
 
-  <div class="section-box">
-    <div class="section-title">跌倒事件分析表</div>
-    <div class="drag-zone" id="zone-2" data-zone-name="跌倒事件分析表">
-      <div class="item" data-id="19"><div class="item-header"><span class="field-name">病患跌倒前的危險性評估</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-risk" placeholder="是/否/未評估/不知道"></div></div>
-      <div class="item" data-id="20"><div class="item-header"><span class="field-name">※跌倒所造成的身體傷害-型態：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" placeholder="無傷害/輕傷/重傷..."></div></div>
-      <div class="item" data-id="21"><div class="item-header"><span class="field-name">※主要原因分析：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-dispute" placeholder="可能性低/有可能/極可能"></div></div>
-      <div class="item" data-id="22"><div class="item-header"><span class="field-name">檢討及改進項目：</span><span class="drag-icon">☰</span></div><div class="settings"><textarea style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; background-color: #fafbfc; font-family: inherit;" rows="2" placeholder="請輸入改進項目"></textarea></div></div>
-      <div class="item" data-id="23"><div class="item-header"><span class="field-name">※是否為此次住院第一次在院內跌倒：</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-yesno" placeholder="是/否"></div></div>
-      <div class="item" data-id="24"><div class="item-header"><span class="field-name">評估醫療糾紛之機會：(需要時主動呈報醫療糾紛小組)</span><span class="drag-icon">☰</span></div><div class="settings"><input type="text" list="logic-dispute" placeholder="可能性低/有可能/極可能"></div></div>
-    </div>
-  </div>
+  <script>
+    let draggedItem = null;
+    let offsetY = 0;
+    const saveStatus = document.getElementById('save-status');
 
-  <div class="section-box">
-    <div class="section-title">非病患無須輸入，自動帶入預設值</div>
-    <div class="drag-zone" id="zone-3" data-zone-name="非病患無須輸入的預設值區"></div>
-  </div>
-
-  <div id="save-status" class="status-tag">✓ 進度已自動儲存於本機</div>
-
-  <div class="control-panel">
-    <div class="control-title">📂 分享</div>
-    <div class="btn-group">
-      <button class="btn btn-warning" onclick="exportJSON()">匯出修改檔 (.json)</button>
-      <button class="btn btn-info" onclick="document.getElementById('import-file').click()">匯入修改檔 (.json)</button>
-      <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importJSON(event)">
-    </div>
-    
-    <div class="control-title">📄 匯出文字結果</div>
-    <div class="btn-group">
-      <button class="btn btn-primary" onclick="showResult()">顯示文字結果</button>
-      <button class="btn btn-success" onclick="downloadTxt()">下載 .txt 檔</button>
-    </div>
-  </div>
-
-  <div id="result"></div>
-</div>
-
-<script>
-  let draggedItem = null;
-  let offsetY = 0;
-  const saveStatus = document.getElementById('save-status');
-
-  // 取得當前所有狀態資料
-  function getCurrentData() {
-    const data = [];
-    document.querySelectorAll('.drag-zone').forEach(zone => {
-      const zoneId = zone.id;
-      zone.querySelectorAll('.item').forEach(item => {
-        const input = item.querySelector('input') || item.querySelector('textarea');
-        data.push({
-          id: item.getAttribute('data-id'),
-          zone: zoneId,
-          note: input ? input.value : ''
+    // 取得當前所有狀態資料
+    function getCurrentData() {
+      const data = [];
+      document.querySelectorAll('.drag-zone').forEach(zone => {
+        const zoneId = zone.id;
+        zone.querySelectorAll('.item').forEach(item => {
+          const input = item.querySelector('input') || item.querySelector('textarea');
+          data.push({
+            id: item.getAttribute('data-id'),
+            zone: zoneId,
+            note: input ? input.value : ''
+          });
         });
       });
-    });
-    return data;
-  }
-
-  // 渲染資料到畫面上
-  function renderData(data) {
-    data.forEach(itemInfo => {
-      const el = document.querySelector(`.item[data-id="${itemInfo.id}"]`);
-      const targetZone = document.getElementById(itemInfo.zone);
-      if (el && targetZone) {
-        const input = el.querySelector('input') || el.querySelector('textarea');
-        if (input) input.value = itemInfo.note;
-        targetZone.appendChild(el); 
-      }
-    });
-  }
-
-  // 本機儲存邏輯 (個人編輯用)
-  function saveToLocal() {
-    localStorage.setItem('fall_report_config_v5', JSON.stringify(getCurrentData()));
-    saveStatus.style.display = 'block';
-    setTimeout(() => { saveStatus.style.display = 'none'; }, 1500);
-  }
-
-  // 讀取本機邏輯
-  function loadFromLocal() {
-    const savedData = localStorage.getItem('fall_report_config_v5');
-    if (savedData) {
-      renderData(JSON.parse(savedData));
+      return data;
     }
-  }
 
-  // 匯出 JSON
-  function exportJSON() {
-    const data = getCurrentData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `跌倒通報介面進度檔_${new Date().getMonth()+1}${new Date().getDate()}.json`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    alert('已下載「修改檔 (.json)」！\n請將此檔案與網頁保留。');
-  }
-
-  // 匯入 JSON
-  function importJSON(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const importedData = JSON.parse(e.target.result);
-        renderData(importedData);
-        saveToLocal(); // 匯入後立刻存入本機緩存
-        alert('✅ 進度檔讀取成功！畫面已恢復。');
-        // 清空 input file 的值，允許重複匯入同一個檔案
-        event.target.value = ''; 
-      } catch (error) {
-        alert('❌ 檔案格式錯誤，請確認上傳的是正確的 .json 進度檔。');
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  // ========== 觸控 + 滑鼠拖曳功能（使用 Pointer Events） ==========
-  document.addEventListener('pointerdown', e => {
-    const item = e.target.closest('.item');
-    if (item && e.target.closest('.drag-icon')) {
-      draggedItem = item;
-      offsetY = e.clientY - item.getBoundingClientRect().top;
-      item.classList.add('is-dragging');
-      item.setPointerCapture(e.pointerId);
+    // 渲染資料到畫面上
+    function renderData(data) {
+      data.forEach(itemInfo => {
+        const el = document.querySelector(`.item[data-id="${itemInfo.id}"]`);
+        const targetZone = document.getElementById(itemInfo.zone);
+        if (el && targetZone) {
+          const input = el.querySelector('input') || el.querySelector('textarea');
+          if (input) input.value = itemInfo.note;
+          targetZone.appendChild(el);
+        }
+      });
     }
-  });
 
-  document.addEventListener('pointermove', e => {
-    if (!draggedItem) return;
-    
-    const zones = document.querySelectorAll('.drag-zone');
-    let targetZone = null;
+    // 本機儲存邏輯 (個人編輯用)
+    function saveToLocal() {
+      localStorage.setItem('fall_report_config_v5', JSON.stringify(getCurrentData()));
+      saveStatus.style.display = 'block';
+      setTimeout(() => { saveStatus.style.display = 'none'; }, 1500);
+    }
 
-    zones.forEach(zone => {
-      const rect = zone.getBoundingClientRect();
-      if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
-        targetZone = zone;
+    // 讀取本機邏輯
+    function loadFromLocal() {
+      const savedData = localStorage.getItem('fall_report_config_v5');
+      if (savedData) {
+        renderData(JSON.parse(savedData));
+      }
+    }
+
+    // 匯出 JSON
+    function exportJSON() {
+      const data = getCurrentData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `跌倒通報介面進度檔_${new Date().getMonth() + 1}${new Date().getDate()}.json`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      alert('已下載「修改檔 (.json)」！\n請將此檔案與網頁保留。');
+    }
+
+    // 匯入 JSON
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          renderData(importedData);
+          saveToLocal(); // 匯入後立刻存入本機緩存
+          alert('✅ 進度檔讀取成功！畫面已恢復。');
+          // 清空 input file 的值，允許重複匯入同一個檔案
+          event.target.value = '';
+        } catch (error) {
+          alert('❌ 檔案格式錯誤，請確認上傳的是正確的 .json 進度檔。');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ========== 觸控 + 滑鼠拖曳功能（使用 Pointer Events） ==========
+    document.addEventListener('pointerdown', e => {
+      const item = e.target.closest('.item');
+      if (item && e.target.closest('.drag-icon')) {
+        draggedItem = item;
+        offsetY = e.clientY - item.getBoundingClientRect().top;
+        item.classList.add('is-dragging');
+        item.setPointerCapture(e.pointerId);
       }
     });
 
-    if (targetZone) {
-      targetZone.classList.add('drag-over');
-      const afterElement = getDragAfterElement(targetZone, e.clientY);
-      
-      if (afterElement == null) {
-        targetZone.appendChild(draggedItem);
-      } else {
-        targetZone.insertBefore(draggedItem, afterElement);
+    document.addEventListener('pointermove', e => {
+      if (!draggedItem) return;
+
+      const zones = document.querySelectorAll('.drag-zone');
+      let targetZone = null;
+
+      zones.forEach(zone => {
+        const rect = zone.getBoundingClientRect();
+        if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+          targetZone = zone;
+        }
+      });
+
+      if (targetZone) {
+        targetZone.classList.add('drag-over');
+        const afterElement = getDragAfterElement(targetZone, e.clientY);
+
+        if (afterElement == null) {
+          targetZone.appendChild(draggedItem);
+        } else {
+          targetZone.insertBefore(draggedItem, afterElement);
+        }
       }
-    }
-  });
+    });
 
-  document.addEventListener('pointerup', e => {
-    if (draggedItem) {
-      draggedItem.classList.remove('is-dragging');
-      document.querySelectorAll('.drag-zone').forEach(z => z.classList.remove('drag-over'));
-      draggedItem = null;
-      saveToLocal();
-    }
-  });
-
-  function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('.item:not(.is-dragging)')];
-    return draggableElements.reduce((closest, child) => {
-      const box = child.getBoundingClientRect();
-      const offset = y - box.top - box.height / 2;
-      if (offset < 0 && offset > closest.offset) {
-        return { offset: offset, element: child };
-      } else {
-        return closest;
+    document.addEventListener('pointerup', e => {
+      if (draggedItem) {
+        draggedItem.classList.remove('is-dragging');
+        document.querySelectorAll('.drag-zone').forEach(z => z.classList.remove('drag-over'));
+        draggedItem = null;
+        saveToLocal();
       }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-  }
+    });
 
-  // 產出與下載
-  function getFormattedText() {
-    let output = "跌倒事件系統介面調整\n";
-    output += "========================================\n\n";
-    
-    document.querySelectorAll('.drag-zone').forEach(zone => {
-      const zoneName = zone.getAttribute('data-zone-name');
-      output += `【 ${zoneName} 】\n`;
-      output += `----------------------------------------\n`;
-      
-      const items = zone.querySelectorAll('.item');
-      if(items.length === 0) {
-        output += `  (此區塊無欄位)\n\n`;
-      } else {
-        items.forEach((item, index) => {
-          const name = item.querySelector('.field-name').innerText;
-          const input = item.querySelector('input') || item.querySelector('textarea');
-          const note = input ? input.value : "無特別設定";
-          output += `  ${index + 1}. ${name}\n     ↳ 預設邏輯：${note || "無特別設定"}\n\n`;
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.item:not(.is-dragging)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // 產出與下載
+    function getFormattedText() {
+      let output = "跌倒事件系統介面調整\n";
+      output += "========================================\n\n";
+
+      document.querySelectorAll('.drag-zone').forEach(zone => {
+        const zoneName = zone.getAttribute('data-zone-name');
+        output += `【 ${zoneName} 】\n`;
+        output += `----------------------------------------\n`;
+
+        const items = zone.querySelectorAll('.item');
+        if (items.length === 0) {
+          output += `  (此區塊無欄位)\n\n`;
+        } else {
+          items.forEach((item, index) => {
+            const name = item.querySelector('.field-name').innerText;
+            const input = item.querySelector('input') || item.querySelector('textarea');
+            const note = input ? input.value : "無特別設定";
+            output += `  ${index + 1}. ${name}\n     ↳ 預設邏輯：${note || "無特別設定"}\n\n`;
+          });
+        }
+      });
+      return output;
+    }
+
+    function showResult() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerText = getFormattedText();
+      resultDiv.style.display = 'block';
+      resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function downloadTxt() {
+      const text = getFormattedText();
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `跌倒介面調整定稿_${new Date().getMonth() + 1}${new Date().getDate()}.txt`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    document.querySelectorAll('input, textarea').forEach(input => {
+      input.addEventListener('input', saveToLocal);
+    });
+
+    // Google Sheets 提交函數
+    const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8F7fijXSlykPj-5MV2-wenT4xFt2mcWe_TgFAAzYm-YL01t5WpkX3GfE301n9uIpRnQ/exec'; // 替換為你的部署 URL
+
+    function submitToGoogle() {
+      const data = getCurrentData();
+      const fullData = {
+        timestamp: new Date().toISOString(),
+        data: data,
+        userAgent: navigator.userAgent
+      };
+
+      fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(fullData)
+      })
+        .then(response => response.json())
+        .then(result => {
+          if (result.status === 'success') {
+            alert('✅ 資料已成功上傳到 Google Sheets！');
+            console.log('成功上傳:', result);
+          } else {
+            alert('❌ 上傳失敗：' + result.message);
+          }
+        })
+        .catch(error => {
+          alert('❌ 連線錯誤：' + error.message);
+          console.error('錯誤詳情:', error);
         });
-      }
-    });
-    return output;
-  }
+    }
 
-  function showResult() {
-    const resultDiv = document.getElementById('result');
-    resultDiv.innerText = getFormattedText();
-    resultDiv.style.display = 'block';
-    resultDiv.scrollIntoView({ behavior: 'smooth' });
-  }
+    function testConnection() {
+      fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ test: true })
+      })
+        .then(response => response.json())
+        .then(result => {
+          alert('✅ 連線成功！可以正常上傳資料。');
+        })
+        .catch(error => {
+          alert('❌ 連線失敗：' + error.message + '\n\n請確認：\n1. URL 是否正確\n2. Google Apps Script 已部署\n3. 允許所有人存取');
+        });
+    }
 
-  function downloadTxt() {
-    const text = getFormattedText();
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `跌倒介面調整定稿_${new Date().getMonth()+1}${new Date().getDate()}.txt`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  }
-
-  document.querySelectorAll('input, textarea').forEach(input => {
-    input.addEventListener('input', saveToLocal);
-  });
-
-  window.onload = loadFromLocal;
-</script>
+    window.onload = loadFromLocal;
+  </script>
 
 </body>
+
 </html>
